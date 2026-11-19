@@ -134,7 +134,9 @@ create function cw_collector_checkin(
   p_collector_id integer,
   p_remarks      text default null
 ) returns integer
-language plpgsql as $$
+language plpgsql
+set search_path = public, pg_temp
+as $$
 declare
   v_status text;
   v_log_id integer;
@@ -179,7 +181,9 @@ create function cw_update_report_status(
   p_user_id    integer,
   p_notes      text default null
 ) returns void
-language plpgsql as $$
+language plpgsql
+set search_path = public, pg_temp
+as $$
 begin
   update cw_missed_reports
      set report_status    = p_new_status,
