@@ -83,7 +83,7 @@ jobs:
           SUPABASE_URL: http://127.0.0.1:54321
           SUPABASE_SERVICE_ROLE_KEY: ci
       - run: npm run test:e2e
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: playwright-report
