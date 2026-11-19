@@ -35,12 +35,16 @@ app/
   dashboard/page.tsx        JMB dashboard                              (frontend)
   actions.ts                every database read and write              (backend)
   api/cron/alerts/          sends SMS alerts before each round         (backend)
-  api/sms/incoming/         turns SMS replies into reports             (backend)
+  api/sms/incoming/         turns SMS replies into reports (done)
   manifest.ts               makes the app installable on phones
 lib/
   db.ts                     Supabase client, server only
-  sms.ts                    textbee wrapper                            (backend)
+  sms.ts                    sends SMS through textbee
+  textbee-webhook.ts        verifies textbee webhook signatures
+  time.ts                   today's date in Malaysian time
   types.ts                  row and view types shared by both sides
+scripts/
+  test-sms.mjs              sends one test SMS: npm run sms:test -- <phone>
 supabase/
   schema.sql                tables, views and functions
   seed.sql                  roles
@@ -71,8 +75,26 @@ Look for `TODO(frontend)` and `TODO(backend)` to see what is left.
 `/api/cron/alerts` every 10 minutes from a free external scheduler (for example cron-job.org)
 with the header `Authorization: Bearer <CRON_SECRET>`.
 
-**SMS replies:** in textbee, turn on Receive SMS on the gateway phone and set the webhook URL to
-`https://<your-app>.vercel.app/api/sms/incoming`, secured with `SMS_WEBHOOK_SECRET`.
+## Linking a textbee account
+
+Sending and receiving SMS are already wired up; they only need an account.
+
+1. Sign up at https://textbee.dev and install the textbee app on an Android phone with a SIM.
+   Sign in on the phone so it appears under **Devices**.
+2. On the phone, turn on **Receive SMS** in the app's settings, set battery usage to
+   **Unrestricted**, and keep it charged and online during alert times.
+3. In the textbee dashboard, create an API key. Put it in `TEXTBEE_API_KEY`, and the device's ID
+   in `TEXTBEE_DEVICE_ID`.
+4. Test sending: `npm run sms:test -- 0123456789` (your own number).
+5. Create a webhook in the dashboard under **Webhooks**:
+   - URL: `https://<your-app>.vercel.app/api/sms/incoming`
+   - Events: `MESSAGE_RECEIVED`
+   - Signing secret: any random string of 20+ characters, also set as `TEXTBEE_WEBHOOK_SECRET`
+     in Vercel.
+6. Reply to a test SMS from a phone number stored in `cw_users`. A new row should appear in
+   `cw_missed_reports`.
+
+Sent and received messages both count towards textbee's free plan limits (50 a day, 300 a month).
 
 ## Data and privacy
 

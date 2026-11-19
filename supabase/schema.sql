@@ -76,7 +76,8 @@ create table cw_missed_reports (
   reported_at      timestamptz not null default now(),
   assigned_to      integer references cw_users (user_id),
   resolved_at      timestamptz,
-  resolution_notes text
+  resolution_notes text,
+  sms_id           text unique  -- textbee smsId when the report came from an SMS reply
 );
 
 create table cw_notification_logs (
