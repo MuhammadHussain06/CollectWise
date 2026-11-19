@@ -205,3 +205,10 @@ alter table cw_notification_logs    enable row level security;
 
 revoke execute on function cw_collector_checkin(integer, integer, text) from public, anon, authenticated;
 revoke execute on function cw_update_report_status(integer, text, integer, text) from public, anon, authenticated;
+
+-- The app's server key needs these whether or not Supabase grants API access automatically.
+grant usage on schema public to service_role;
+grant all on all tables in schema public to service_role;
+grant all on all sequences in schema public to service_role;
+grant execute on function cw_collector_checkin(integer, integer, text) to service_role;
+grant execute on function cw_update_report_status(integer, text, integer, text) to service_role;

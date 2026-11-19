@@ -19,6 +19,7 @@ describe.skipIf(!DATABASE_URL)("database schema", () => {
       do $$ begin
         if not exists (select from pg_roles where rolname = 'anon') then create role anon; end if;
         if not exists (select from pg_roles where rolname = 'authenticated') then create role authenticated; end if;
+        if not exists (select from pg_roles where rolname = 'service_role') then create role service_role bypassrls; end if;
       end $$;
       grant usage on schema public to anon, authenticated;
     `);
@@ -201,6 +202,18 @@ describe.skipIf(!DATABASE_URL)("database schema", () => {
   });
 
   describe("access control", () => {
+    it("lets the service role read, write and run the functions", async () => {
+      const scheduleId = await newSchedule();
+      await client.query("set role service_role");
+      try {
+        await client.query("select * from cw_v_floor_progress");
+        await client.query("select cw_collector_checkin($1, 43)", [scheduleId]);
+        await client.query("select cw_update_report_status(3, 'IN_PROGRESS', 45)");
+      } finally {
+        await client.query("reset role");
+      }
+    });
+
     it("has row level security on every table", async () => {
       const { rows } = await client.query(
         "select relname from pg_class where relnamespace = 'public'::regnamespace and relkind = 'r' and not relrowsecurity",
